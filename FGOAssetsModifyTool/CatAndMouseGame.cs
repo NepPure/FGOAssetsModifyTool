@@ -261,7 +261,6 @@ namespace FGOAssetsModifyTool
             return Encoding.UTF8.GetString(array).TrimEnd(new char[1]);
         }
 
-
         public static void OtherHomeBuilding(string data, out byte[] home, out byte[] info)
         {
             var bytes = Encoding.UTF8.GetBytes(data);
@@ -307,18 +306,9 @@ namespace FGOAssetsModifyTool
             byte[] result = null;
             try
             {
-                var blockCipher = new CbcBlockCipher(new RijndaelEngine(256));
-                var cipher = new PaddedBufferedBlockCipher(blockCipher, new Pkcs7Padding());
-                var keyParam = new KeyParameter(home);
-                var keyParamWithIV = new ParametersWithIV(keyParam, info, 0, 32);
-                cipher.Init(true, keyParamWithIV);
-                var buffer = new byte[cipher.GetOutputSize(data.Length)];
-                var length = cipher.ProcessBytes(data, buffer, 0);
-                cipher.DoFinal(buffer, length);
-
                 if (isCompress)
                 {
-                    using (MemoryStream inStream = new MemoryStream(buffer))
+                    using (MemoryStream inStream = new MemoryStream(data))
                     {
                         using (MemoryStream outStream = new MemoryStream())
                         {
@@ -330,14 +320,20 @@ namespace FGOAssetsModifyTool
                             {
                                 GZip.Compress(inStream, outStream, true);
                             }
-                            result = outStream.ToArray();
+                            data = outStream.ToArray();
                         }
                     }
                 }
-                else
-                {
-                    return buffer;
-                }
+
+                var blockCipher = new CbcBlockCipher(new RijndaelEngine(256));
+                var cipher = new PaddedBufferedBlockCipher(blockCipher, new Pkcs7Padding());
+                var keyParam = new KeyParameter(home);
+                var keyParamWithIV = new ParametersWithIV(keyParam, info, 0, 32);
+                cipher.Init(true, keyParamWithIV);
+                var buffer = new byte[cipher.GetOutputSize(data.Length)];
+                var length = cipher.ProcessBytes(data, buffer, 0);
+                cipher.DoFinal(buffer, length);
+                result = buffer;
             }
             catch (Exception ex)
             {

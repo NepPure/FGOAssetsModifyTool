@@ -36,6 +36,7 @@ namespace FGOAssetsModifyTool
                     "9: 加密剧情文本(scripts)\n" +
                     "10: 解密剧情文本(scripts)\n" +
                     "11: 汉化UI\n" +
+                    "12: 加密AssetStorage_dec.txt\n" +
                     "67: 切换为国服密钥\n" +
                     "68: 切换为国服IOS密钥\n" +
                     "69: 切换为美服密钥");
@@ -218,7 +219,7 @@ namespace FGOAssetsModifyTool
                             if (File.Exists($"{Configuration.AssetsFolder.FullName}AssetStorage.txt"))
                             {
                                 string data = File.ReadAllText($"{Configuration.AssetsFolder.FullName}AssetStorage.txt");
-                                string DecryptedData = decryptor.MouseGame8(data);
+                                string DecryptedData = decryptor.MouseGame3(data);
                                 File.WriteAllText($"{Configuration.AssetsFolder.FullName}AssetStorage_dec.txt", DecryptedData);
                                 Console.WriteLine($"Writing file to: {Configuration.AssetsFolder.FullName}AssetStorage_dec.txt");
                             }
@@ -515,6 +516,21 @@ namespace FGOAssetsModifyTool
                             string Non_Translation = JsonSerializer.Serialize(NoTranslation, options);
                             File.WriteAllText(Configuration.DecryptedFolder.FullName + "LocalizationJpn.txt", LocalizationJpn);
                             File.WriteAllText(Configuration.DecryptedFolder.FullName + "Non-Translation.txt", Non_Translation);
+                            break;
+                        }
+                    case 12:
+                        {
+                            if (File.Exists($"{Configuration.AssetsFolder.FullName}AssetStorage_dec.txt"))
+                            {
+                                string data = File.ReadAllText($"{Configuration.AssetsFolder.FullName}AssetStorage_dec.txt");
+                                string DecryptedData = decryptor.CatGame3(data);
+                                File.WriteAllText($"{Configuration.EncryptedFolder}AssetStorage.txt", DecryptedData);
+                                Console.WriteLine($"Writing file to: {Configuration.EncryptedFolder}AssetStorage.txt");
+                            }
+                            else
+                            {
+                                Console.WriteLine("先放置AssetStorage_dec.txt");
+                            }
                             break;
                         }
                     default:
