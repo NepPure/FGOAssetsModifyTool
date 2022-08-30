@@ -38,7 +38,7 @@ namespace FGOAssetsModifyTool
                     "10: 解密剧情文本(scripts)\n" +
                     "11: 汉化UI\n" +
                     "12: 加密AssetStorage_dec.txt\n" +
-                    "67: 切换为国服密钥\n" +
+                    "67: 切换为国服Android密钥\n" +
                     "68: 切换为国服IOS密钥\n" +
                     "69: 切换为美服密钥");
                 int arg = Convert.ToInt32(Console.ReadLine());
