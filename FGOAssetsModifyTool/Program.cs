@@ -21,12 +21,13 @@ namespace FGOAssetsModifyTool
             try
             {
                 Console.WriteLine(
-                    "初始化顺序：3->7->4->6->0\n" +
-                    "之后直接选择：0\n" +
-                    "注意：日服的AssetStorage.txt必须选择4下载，从游戏中提取的格式不同\n" +
+                    //"初始化顺序：3->7->4->6->0\n" +
+                    //"之后直接选择：0\n" +
+                    "※这是有其他用途魔改过的\n"+
+                    //"注意：日服的AssetStorage.txt必须选择4下载，从游戏中提取的格式不同\n" +
                     "0: 载入assetbundleinfo\n" +
-                    "1: 加密\t" +
-                    "2: 解密\n" +
+                    "1: 资源加密\t" +
+                    "2: 资源解密\n" +
                     "3: 从服务器下载游戏数据\n" +
                     "4: 下载并解密AssetStorage.txt\t" +
                     "5: 解密AssetStorage.txt\t" +
