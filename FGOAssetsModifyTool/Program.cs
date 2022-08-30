@@ -26,13 +26,13 @@ namespace FGOAssetsModifyTool
                     "※这是有其他用途魔改过的\n"+
                     //"注意：日服的AssetStorage.txt必须选择4下载，从游戏中提取的格式不同\n" +
                     "0: 载入assetbundleinfo\n" +
-                    "1: 资源加密\t" +
+                    "1: 资源加密\n" +
                     "2: 资源解密\n" +
                     "3: 从服务器下载游戏数据\n" +
-                    "4: 下载并解密AssetStorage.txt\t" +
-                    "5: 解密AssetStorage.txt\t" +
+                    "4: 下载并解密AssetStorage.txt\n" +
+                    "5: 解密AssetStorage.txt\n" +
                     "6: 解析AssetStorage.txt\n" +
-                    "7: 解析AssetBundle&Key\t" +
+                    "7: 解析AssetBundle&Key\n" +
                     "8: 解析Master\n" +
                     "9: 加密剧情文本(scripts)\n" +
                     "10: 解密剧情文本(scripts)\n" +
