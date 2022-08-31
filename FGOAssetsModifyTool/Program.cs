@@ -547,6 +547,7 @@ namespace FGOAssetsModifyTool
 
                                     if (doneDic.TryGetValue(row[0], out var done))
                                     {
+                                        Console.WriteLine($"处理：{row[0]}");
                                         var size = done.Length;
                                         row[2] = size.ToString();
                                         var filebytes = File.ReadAllBytes(done.FullName);
