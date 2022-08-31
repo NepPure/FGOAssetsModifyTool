@@ -7,6 +7,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Text.Encodings.Web;
+using System.Linq;
+using System.Text;
 
 namespace FGOAssetsModifyTool
 {
@@ -18,12 +20,13 @@ namespace FGOAssetsModifyTool
         static async void DisplayMenuAsync()
         {
             Console.Clear();
+            Console.WriteLine($"工作目录：{Configuration.NowPath}");
             try
             {
                 Console.WriteLine(
                     //"初始化顺序：3->7->4->6->0\n" +
                     //"之后直接选择：0\n" +
-                    "※这是有其他用途魔改过的\n"+
+                    "※这是有其他用途魔改过的\n" +
                     //"注意：日服的AssetStorage.txt必须选择4下载，从游戏中提取的格式不同\n" +
                     "0: 载入assetbundleinfo\n" +
                     "1: 资源加密\n" +
@@ -521,16 +524,51 @@ namespace FGOAssetsModifyTool
                         }
                     case 12:
                         {
-                            if (File.Exists($"{Configuration.AssetsFolder.FullName}AssetStorage_dec.txt"))
+                            if (File.Exists($"{Configuration.AssetsFolder.FullName}AssetStorage.txt"))
                             {
-                                string data = File.ReadAllText($"{Configuration.AssetsFolder.FullName}AssetStorage_dec.txt");
-                                string DecryptedData = decryptor.CatGame3(data);
-                                File.WriteAllText($"{Configuration.EncryptedFolder}AssetStorage.txt", DecryptedData);
-                                Console.WriteLine($"Writing file to: {Configuration.EncryptedFolder}AssetStorage.txt");
+                                string data = File.ReadAllText($"{Configuration.AssetsFolder.FullName}AssetStorage.txt");
+                                string DecryptedData = decryptor.MouseGame3(data);
+                                var assetLines = DecryptedData.Split("\n");
+
+                                var doneFiles = Configuration.AssetsDoneFolder.GetFiles("*.bin", SearchOption.TopDirectoryOnly);
+                                var doneDic = doneFiles.ToDictionary(m => Path.GetFileNameWithoutExtension(m.Name), m => m);
+
+                                var assetDoneLines = new List<string>();
+
+                                for (int i = 1; i < assetLines.Length; i++)
+                                {
+                                    var row = assetLines[i].Split(",");
+                                    if (row.Length != 7)
+                                    {
+                                        Console.WriteLine($"跳过：{assetLines[i]}");
+                                        assetDoneLines.Add(assetLines[i]);
+                                        continue;
+                                    }
+
+                                    if (doneDic.TryGetValue(row[0], out var done))
+                                    {
+                                        var size = done.Length;
+                                        row[2] = size.ToString();
+                                        var filebytes = File.ReadAllBytes(done.FullName);
+                                        var filecrc32 = Crc32.Compute(filebytes);
+                                        row[3] = filecrc32.ToString();
+                                    }
+
+                                    assetDoneLines.Add(string.Join(",", row));
+                                }
+
+                                var doneData = string.Join("\n", assetDoneLines);
+                                var donecrc32 = Crc32.Compute(Encoding.UTF8.GetBytes(doneData));
+                                doneData = $"~{donecrc32}\n{doneData}";
+
+
+                                string EncryptedData = decryptor.CatGame3(doneData);
+                                File.WriteAllText($"{Configuration.AssetsDoneFolder.FullName}AssetStorage.txt", EncryptedData);
+                                Console.WriteLine($"Writing file to: {Configuration.AssetsDoneFolder.FullName}AssetStorage.txt");
                             }
                             else
                             {
-                                Console.WriteLine("先放置AssetStorage_dec.txt");
+                                Console.WriteLine("先下载或放置AssetStorage.txt");
                             }
                             break;
                         }

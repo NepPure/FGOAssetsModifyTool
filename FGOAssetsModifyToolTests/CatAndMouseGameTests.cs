@@ -15,6 +15,7 @@ namespace FGOAssetsModifyTool.Tests
         public void CatGame3Test()
         {
             CatAndMouseGame decryptor = new(CatAndMouseGame.FileType.CN);
+
             var test = "abcd";
 
             var enc = decryptor.CatGame3(test);
