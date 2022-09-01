@@ -9,6 +9,7 @@ using System.Text.Unicode;
 using System.Text.Encodings.Web;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 
 namespace FGOAssetsModifyTool
 {
@@ -17,6 +18,8 @@ namespace FGOAssetsModifyTool
         static CatAndMouseGame decryptor = new(CatAndMouseGame.FileType.JP);
         static Dictionary<string, string> AssetBundleKeyList = new();
         static Dictionary<string, string> AssetBundleWithExtraKey = new();
+        static bool IsIos = false;
+        static string bgoDownloadPrefix => IsIos ? "https://line2-patch-fate.bilibiligame.net/2450/NewResources/iPhone/" : "https://line2-patch-fate.bilibiligame.net/2450/NewResources/Android/";
         static async void DisplayMenuAsync()
         {
             Console.Clear();
@@ -41,6 +44,7 @@ namespace FGOAssetsModifyTool
                     "10: 解密剧情文本(scripts)\n" +
                     "11: 汉化UI\n" +
                     "12: 加密AssetStorage_dec.txt\n" +
+                    "13: 根据AssetStorage.txt下载国服所有资源到Download\n" +
                     "67: 切换为国服Android密钥\n" +
                     "68: 切换为国服IOS密钥\n" +
                     "69: 切换为美服密钥");
@@ -55,11 +59,13 @@ namespace FGOAssetsModifyTool
                         }
                     case 68:
                         {
-                            decryptor = new(CatAndMouseGame.FileType.CN, true);
+                            IsIos = true;
+                            decryptor = new(CatAndMouseGame.FileType.CN, IsIos);
                             break;
                         }
                     case 69:
                         {
+                            IsIos = false;
                             decryptor = new(CatAndMouseGame.FileType.EN);
                             break;
                         }
@@ -556,6 +562,66 @@ namespace FGOAssetsModifyTool
                                     }
 
                                     assetDoneLines.Add(string.Join(",", row));
+                                }
+
+                                var doneData = string.Join("\n", assetDoneLines);
+                                var donecrc32 = Crc32.Compute(Encoding.UTF8.GetBytes(doneData));
+                                doneData = $"~{donecrc32}\n{doneData}";
+
+
+                                string EncryptedData = decryptor.CatGame3(doneData);
+                                File.WriteAllText($"{Configuration.AssetsDoneFolder.FullName}AssetStorage.txt", EncryptedData);
+                                Console.WriteLine($"Writing file to: {Configuration.AssetsDoneFolder.FullName}AssetStorage.txt");
+                            }
+                            else
+                            {
+                                Console.WriteLine("先下载或放置AssetStorage.txt");
+                            }
+                            break;
+                        }
+                    case 13:
+                        {
+                            if (File.Exists($"{Configuration.AssetsFolder.FullName}AssetStorage.txt"))
+                            {
+                                string data = File.ReadAllText($"{Configuration.AssetsFolder.FullName}AssetStorage.txt");
+                                string DecryptedData = decryptor.MouseGame3(data);
+                                var assetLines = DecryptedData.Split("\n");
+
+                                var doneFiles = Configuration.AssetsDownloadFolder.GetFiles("*.bin", SearchOption.TopDirectoryOnly);
+                                var doneDic = doneFiles.ToDictionary(m => Path.GetFileNameWithoutExtension(m.Name), m => m);
+
+                                var assetDoneLines = new List<string>();
+
+                                using var client = new HttpClient();
+                                for (int i = 1; i < assetLines.Length; i++)
+                                {
+                                    var row = assetLines[i].Split(",");
+                                    if (row.Length != 7)
+                                    {
+                                        Console.WriteLine($"跳过：{assetLines[i]}");
+                                        continue;
+                                    }
+
+                                    if (doneDic.TryGetValue(row[0], out var done))
+                                    {
+                                        Console.WriteLine($"已下载跳过：{row[0]}");
+                                        continue;
+                                    }
+
+                                    var name = row[0];
+                                    try
+                                    {
+                                        var url = $"{bgoDownloadPrefix}{name[..2]}/{name}.bin";
+                                        Console.WriteLine($"下载：{url}");
+                                        var filebytes = await client.GetByteArrayAsync(url);
+                                        await File.WriteAllBytesAsync($"{Configuration.AssetsDownloadFolder.FullName}{name}.bin", filebytes);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"下载失败：{row[0]}");
+                                        Console.WriteLine(ex);
+                                    }
+
                                 }
 
                                 var doneData = string.Join("\n", assetDoneLines);

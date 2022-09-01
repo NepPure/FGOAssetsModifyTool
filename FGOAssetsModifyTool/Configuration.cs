@@ -9,6 +9,7 @@ namespace FGOAssetsModifyTool
         public static DirectoryInfo AssetsFolder = new DirectoryInfo(NowPath + @"\Android\");
         public static DirectoryInfo AssetsRawFolder = new DirectoryInfo(NowPath + @"\raw\");
         public static DirectoryInfo AssetsDoneFolder = new DirectoryInfo(NowPath + @"\修改完成\");
+        public static DirectoryInfo AssetsDownloadFolder = new DirectoryInfo(NowPath + @"\Download\");
         public static DirectoryInfo ScriptsFolder = new DirectoryInfo(NowPath + @"\Android\Scripts");
         public static string GameDataFolder = new DirectoryInfo(NowPath + @"\Android\gamedata\").FullName;
         public static string GameDataUnpackFolder = new DirectoryInfo(NowPath + @"\Android\gamedata\unpack_master\").FullName;
@@ -52,6 +53,9 @@ namespace FGOAssetsModifyTool
 
             if (!Directory.Exists(AssetsDoneFolder.FullName))
                 Directory.CreateDirectory(AssetsDoneFolder.FullName);
+
+            if (!Directory.Exists(AssetsDownloadFolder.FullName))
+                Directory.CreateDirectory(AssetsDownloadFolder.FullName);
         }
     }
 }
