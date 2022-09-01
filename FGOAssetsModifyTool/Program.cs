@@ -10,6 +10,7 @@ using System.Text.Encodings.Web;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace FGOAssetsModifyTool
 {
@@ -19,8 +20,8 @@ namespace FGOAssetsModifyTool
         static Dictionary<string, string> AssetBundleKeyList = new();
         static Dictionary<string, string> AssetBundleWithExtraKey = new();
         static bool IsIos = false;
-        static string bgoDownloadPrefix => IsIos ? "https://line2-patch-fate.bilibiligame.net/2450/NewResources/iPhone/" : "https://line2-patch-fate.bilibiligame.net/2450/NewResources/Android/";
-        static async void DisplayMenuAsync()
+        static string BgoDownloadPrefix => IsIos ? "https://line2-patch-fate.bilibiligame.net/2450/NewResources/iPhone/" : "https://line2-patch-fate.bilibiligame.net/2450/NewResources/Android/";
+        static async Task DisplayMenuAsync()
         {
             Console.Clear();
             Console.WriteLine($"工作目录：{Configuration.NowPath}");
@@ -44,7 +45,7 @@ namespace FGOAssetsModifyTool
                     "10: 解密剧情文本(scripts)\n" +
                     "11: 汉化UI\n" +
                     "12: 加密AssetStorage_dec.txt\n" +
-                    "13: 根据AssetStorage.txt下载国服所有资源到Download\n" +
+                    "13: 根据AssetStorage.txt下载国服所有资源到Download并解密\n" +
                     "67: 切换为国服Android密钥\n" +
                     "68: 切换为国服IOS密钥\n" +
                     "69: 切换为美服密钥");
@@ -593,6 +594,7 @@ namespace FGOAssetsModifyTool
                                 var assetDoneLines = new List<string>();
 
                                 using var client = new HttpClient();
+
                                 for (int i = 1; i < assetLines.Length; i++)
                                 {
                                     var row = assetLines[i].Split(",");
@@ -611,10 +613,16 @@ namespace FGOAssetsModifyTool
                                     var name = row[0];
                                     try
                                     {
-                                        var url = $"{bgoDownloadPrefix}{name[..2]}/{name}.bin";
+                                        var url = $"{BgoDownloadPrefix}{name[..2]}/{name}.bin";
                                         Console.WriteLine($"下载：{url}");
                                         var filebytes = await client.GetByteArrayAsync(url);
-                                        await File.WriteAllBytesAsync($"{Configuration.AssetsDownloadFolder.FullName}{name}.bin", filebytes);
+                                        var output = decryptor.MouseGame4(filebytes);
+                                        if (output == null)
+                                        {
+                                            Console.WriteLine($"解密失败跳过：{name}");
+                                            continue;
+                                        }
+                                        await File.WriteAllBytesAsync($"{Configuration.AssetsDownloadFolder.FullName}{name}.bin", output);
                                     }
                                     catch (Exception ex)
                                     {
@@ -624,14 +632,7 @@ namespace FGOAssetsModifyTool
 
                                 }
 
-                                var doneData = string.Join("\n", assetDoneLines);
-                                var donecrc32 = Crc32.Compute(Encoding.UTF8.GetBytes(doneData));
-                                doneData = $"~{donecrc32}\n{doneData}";
-
-
-                                string EncryptedData = decryptor.CatGame3(doneData);
-                                File.WriteAllText($"{Configuration.AssetsDoneFolder.FullName}AssetStorage.txt", EncryptedData);
-                                Console.WriteLine($"Writing file to: {Configuration.AssetsDoneFolder.FullName}AssetStorage.txt");
+                                Console.WriteLine("下载完成");
                             }
                             else
                             {
@@ -652,11 +653,11 @@ namespace FGOAssetsModifyTool
                 Console.WriteLine(ex.StackTrace);
             }
         }
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             while (true)
             {
-                DisplayMenuAsync();
+                await DisplayMenuAsync();
                 Console.WriteLine("pause...");
                 Console.ReadKey(true);
             }
