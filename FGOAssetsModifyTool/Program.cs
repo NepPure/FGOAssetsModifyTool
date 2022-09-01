@@ -588,12 +588,21 @@ namespace FGOAssetsModifyTool
                                 string DecryptedData = decryptor.MouseGame3(data);
                                 var assetLines = DecryptedData.Split("\n");
 
-                                var doneFiles = Configuration.AssetsDownloadFolder.GetFiles("*.bin", SearchOption.TopDirectoryOnly);
-                                var doneDic = doneFiles.ToDictionary(m => Path.GetFileNameWithoutExtension(m.Name), m => m);
+                                var doneFiles = Configuration.AssetsDownloadFolder.GetFiles("*.bin", SearchOption.AllDirectories);
+                                var doneDic = doneFiles.ToDictionary(m => Path.GetFileName(m.Name), m => m);
 
                                 var assetDoneLines = new List<string>();
 
                                 using var client = new HttpClient();
+
+                                var allowDownload = new List<string>
+                                {
+                                    "Servants",
+                                    "NoblePhantasm",
+                                    "CharaFigure",
+                                    "CharaGraph",
+                                    "Commands"
+                                };
 
                                 for (int i = 1; i < assetLines.Length; i++)
                                 {
@@ -604,13 +613,22 @@ namespace FGOAssetsModifyTool
                                         continue;
                                     }
 
-                                    if (doneDic.TryGetValue(row[0], out var done))
+                                    var name = row[0];
+                                    var path = row[4];
+                                    var filename = $"{path}-{name}.bin";
+
+                                    if (doneDic.TryGetValue(Path.GetFileName(filename), out var done))
                                     {
-                                        Console.WriteLine($"已下载跳过：{row[0]}");
+                                        Console.WriteLine($"已下载跳过：{filename}");
                                         continue;
                                     }
 
-                                    var name = row[0];
+                                    if (!allowDownload.Where(m => path.StartsWith(m)).Any())
+                                    {
+                                        Console.WriteLine($"跳过：{filename}");
+                                        continue;
+                                    }
+
                                     try
                                     {
                                         var url = $"{BgoDownloadPrefix}{name[..2]}/{name}.bin";
@@ -619,14 +637,19 @@ namespace FGOAssetsModifyTool
                                         var output = decryptor.MouseGame4(filebytes);
                                         if (output == null)
                                         {
-                                            Console.WriteLine($"解密失败跳过：{name}");
-                                            continue;
+                                            Console.WriteLine($"解密失败跳过，有些资源不能解密是正常的：{filename}");
+                                            output = Array.Empty<byte>();
                                         }
-                                        await File.WriteAllBytesAsync($"{Configuration.AssetsDownloadFolder.FullName}{name}.bin", output);
+                                        var fullpath = Path.Combine(Configuration.AssetsDownloadFolder.FullName, filename);
+                                        var dir = Path.GetDirectoryName(fullpath);
+                                        if (!Directory.Exists(dir))
+                                            Directory.CreateDirectory(dir);
+
+                                        await File.WriteAllBytesAsync(fullpath, output);
+                                        Console.WriteLine($"写入：{filename}");
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"下载失败：{row[0]}");
                                         Console.WriteLine(ex);
                                     }
 
