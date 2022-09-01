@@ -597,11 +597,14 @@ namespace FGOAssetsModifyTool
 
                                 var allowDownload = new List<string>
                                 {
-                                    "Servants",
-                                    "NoblePhantasm",
-                                    "CharaFigure",
-                                    "CharaGraph",
-                                    "Commands"
+                                    "Servants/",
+                                    "NoblePhantasm/",
+                                    "CharaFigure/",
+                                    "CharaGraph/",
+                                    "Commands/",
+                                    "EquipFaces/",
+                                    "Faces/",
+                                    "FaceBattle/"
                                 };
 
                                 for (int i = 1; i < assetLines.Length; i++)
