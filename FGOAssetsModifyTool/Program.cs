@@ -604,7 +604,8 @@ namespace FGOAssetsModifyTool
                                     "Commands/",
                                     "EquipFaces/",
                                     "Faces/",
-                                    "FaceBattle/"
+                                    "FaceBattle/",
+                                    "NarrowFigure/"
                                 };
 
                                 for (int i = 1; i < assetLines.Length; i++)
