@@ -20,7 +20,7 @@ namespace FGOAssetsModifyTool
         static Dictionary<string, string> AssetBundleKeyList = new();
         static Dictionary<string, string> AssetBundleWithExtraKey = new();
         static bool IsIos = false;
-        static string BgoDownloadPrefix => IsIos ? "https://line2-patch-fate.bilibiligame.net/2450/NewResources/iPhone/" : "https://line2-patch-fate.bilibiligame.net/2450/NewResources/Android/";
+        static string BgoDownloadPrefix => IsIos ? "https://line3-patch-fate.bilibiligame.net/2450/NewResources/iPhone/" : "https://line3-patch-fate.bilibiligame.net/2450/NewResources/Android/";
         static async Task DisplayMenuAsync()
         {
             Console.Clear();
