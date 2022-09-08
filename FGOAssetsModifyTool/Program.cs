@@ -541,6 +541,7 @@ namespace FGOAssetsModifyTool
                                 var doneDic = doneFiles.ToDictionary(m => Path.GetFileNameWithoutExtension(m.Name), m => m);
 
                                 var assetDoneLines = new List<string>();
+                                var doneList = new List<string>();
 
                                 for (int i = 1; i < assetLines.Length; i++)
                                 {
@@ -560,9 +561,15 @@ namespace FGOAssetsModifyTool
                                         var filebytes = File.ReadAllBytes(done.FullName);
                                         var filecrc32 = Crc32.Compute(filebytes);
                                         row[3] = filecrc32.ToString();
+                                        doneList.Add(row[0]);
                                     }
 
                                     assetDoneLines.Add(string.Join(",", row));
+                                }
+                                var notdones = doneDic.Keys.ToList().Except(doneList).ToList();
+                                foreach (var notdone in notdones)
+                                {
+                                    Console.WriteLine($"未处理：{notdone}");
                                 }
 
                                 var doneData = string.Join("\n", assetDoneLines);
